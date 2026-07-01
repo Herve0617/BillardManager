@@ -1,0 +1,68 @@
+[
+    {
+        "id_paiement": 1,
+        "id_partie": 1,
+        "duree_heures": 0.06,
+        "montant_brut": 248.76,
+        "remise_vip": 49.75,
+        "montant_net": 199.01,
+        "mode_paiement": "Esp\u00e8ces"
+    },
+    {
+        "id_paiement": 2,
+        "id_partie": 1,
+        "duree_heures": 3.0,
+        "montant_brut": 9000.0,
+        "remise_vip": 1800.0,
+        "montant_net": 7200.0,
+        "mode_paiement": "Esp\u00e8ces"
+    },
+    {
+        "id_paiement": 3,
+        "id_partie": 2,
+        "duree_heures": 0.23,
+        "montant_brut": 702.44,
+        "remise_vip": 140.49,
+        "montant_net": 561.95,
+        "mode_paiement": "Orange Money"
+    },
+    {
+        "id_paiement": 4,
+        "id_partie": 3,
+        "duree_heures": 3.0,
+        "montant_brut": 15000.0,
+        "remise_vip": 3000.0,
+        "montant_net": 12000.0,
+        "mode_paiement": "Moov Money"
+    },
+    {
+        "id_paiement": 5,
+        "id_partie": 4,
+        "duree_heures": 0.18,
+        "montant_brut": 533.75,
+        "remise_vip": 0.0,
+        "montant_net": 533.75,
+        "mode_paiement": "Esp\u00e8ces",
+        "id_employe": "EMP0001"
+    },
+    {
+        "id_paiement": 6,
+        "id_partie": 5,
+        "duree_heures": 0.03,
+        "montant_brut": 172.36,
+        "remise_vip": 34.47,
+        "montant_net": 137.89000000000001,
+        "mode_paiement": "Esp\u00e8ces",
+        "id_employe": "EMP0001"
+    },
+    {
+        "id_paiement": 7,
+        "id_partie": 6,
+        "duree_heures": 0.51,
+        "montant_brut": 2032.3,
+        "remise_vip": 406.46,
+        "montant_net": 1625.84,
+        "mode_paiement": "Orange Money",
+        "id_employe": "EMP0001"
+    }
+]

@@ -1,0 +1,50 @@
+[
+    {
+        "id_partie": 1,
+        "id_client": "CLT0001",
+        "numero_table": 1,
+        "heure_debut": "2026-06-30 02:54:48",
+        "heure_fin": "2026-06-30 02:55:40",
+        "cloturee": true
+    },
+    {
+        "id_partie": 2,
+        "id_client": "CLT0003",
+        "numero_table": 1,
+        "heure_debut": "2026-06-30 22:21:10",
+        "heure_fin": "2026-06-30 22:35:12",
+        "cloturee": true
+    },
+    {
+        "id_partie": 3,
+        "id_client": "CLT0001",
+        "numero_table": 2,
+        "heure_debut": "2026-06-30 22:36:22",
+        "heure_fin": "2026-06-30 22:36:39",
+        "cloturee": true
+    },
+    {
+        "id_partie": 4,
+        "id_client": "CLT0002",
+        "numero_table": 4,
+        "heure_debut": "2026-06-30 23:06:00",
+        "heure_fin": "2026-06-30 23:16:40",
+        "cloturee": true
+    },
+    {
+        "id_partie": 5,
+        "id_client": "CLT0001",
+        "numero_table": 2,
+        "heure_debut": "2026-07-01 00:45:12",
+        "heure_fin": "2026-07-01 00:47:16",
+        "cloturee": true
+    },
+    {
+        "id_partie": 6,
+        "id_client": "CLT0003",
+        "numero_table": 3,
+        "heure_debut": "2026-07-01 00:49:53",
+        "heure_fin": "2026-07-01 01:20:22",
+        "cloturee": true
+    }
+]

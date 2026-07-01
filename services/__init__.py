@@ -1,0 +1,6 @@
+from services.sauvegarde_service import SauvegardeService
+from services.table_service import TableService
+from services.partie_service import PartieService
+from services.client_service import ClientService
+from services.paiement_service import PaiementService
+from services.statistique_service import StatistiqueService

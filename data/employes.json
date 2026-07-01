@@ -1,0 +1,16 @@
+[
+    {
+        "id_personne": "EMP0001",
+        "nom": "Zoungrana",
+        "prenom": "Pierre",
+        "telephone": "70203040",
+        "poste": "Réceptionniste"
+    },
+    {
+        "id_personne": "EMP0002",
+        "nom": "Sawadogo",
+        "prenom": "Ali",
+        "telephone": "76112233",
+        "poste": "Gérant"
+    }
+]

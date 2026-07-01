@@ -1,0 +1,30 @@
+[
+    {
+        "id_personne": "CLT0001",
+        "nom": "Sanon",
+        "prenom": "Issa",
+        "telephone": "70112233",
+        "est_vip": true
+    },
+    {
+        "id_personne": "CLT0002",
+        "nom": "Soma",
+        "prenom": "Mariam",
+        "telephone": "76504030",
+        "est_vip": false
+    },
+    {
+        "id_personne": "CLT0003",
+        "nom": "Coulibaly",
+        "prenom": "Hervé",
+        "telephone": "45231012",
+        "est_vip": true
+    },
+    {
+        "id_personne": "CLT0004",
+        "nom": "Sana",
+        "prenom": "Ali",
+        "telephone": "75412555",
+        "est_vip": true
+    }
+]

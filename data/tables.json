@@ -1,0 +1,32 @@
+[
+    {
+        "numero": 1,
+        "type_billard": "Américain",
+        "tarif_horaire": 3000.0,
+        "est_occupee": false
+    },
+    {
+        "numero": 2,
+        "type_billard": "Snooker",
+        "tarif_horaire": 5000.0,
+        "est_occupee": false
+    },
+    {
+        "numero": 3,
+        "type_billard": "Français",
+        "tarif_horaire": 4000.0,
+        "est_occupee": false
+    },
+    {
+        "numero": 4,
+        "type_billard": "Américain",
+        "tarif_horaire": 3000.0,
+        "est_occupee": false
+    },
+    {
+        "numero": 5,
+        "type_billard": "Français",
+        "tarif_horaire": 4000.0,
+        "est_occupee": false
+    }
+]
