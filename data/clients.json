@@ -24,7 +24,7 @@
         "id_personne": "CLT0004",
         "nom": "Sana",
         "prenom": "Ali",
-        "telephone": "75412555",
-        "est_vip": true
+        "telephone": "54321025",
+        "est_vip": false
     }
 ]

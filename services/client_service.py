@@ -55,4 +55,17 @@ class ClientService:
                 return client  # Retourne l'objet client correspondant trouvé
                 
         return None  # Aucun client ne possède cet ID
+    
+    #Supprimer un client
+    @classmethod
+    def supprimer_client(cls, id_client: str) -> bool:
+        """Supprime un client de la base de données JSON par son ID."""
+        clients = SauvegardeService.charger_clients()
+        nouveau_catalogue = [c for c in clients if c.id_personne.upper() != id_client.upper()]
+        
+        if len(clients) == len(nouveau_catalogue):
+            return False  # Aucun client trouvé avec cet ID
+            
+        SauvegardeService.sauvegarder_clients(nouveau_catalogue)
+        return True
 

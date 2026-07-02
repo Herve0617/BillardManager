@@ -36,3 +36,16 @@ class TableService:
         SauvegardeService.sauvegarder_tables(tables)
         print(f"\n🟢 Succès : La table N°{numero} ({type_billard.value}) a été ajoutée.")
         return True
+    
+    #Supprimer un table billard
+    @classmethod
+    def supprimer_table(cls, numero_table: int) -> bool:
+        """Retire physiquement une table du parc de billard."""
+        tables = SauvegardeService.charger_tables()
+        nouveau_parc = [t for t in tables if t.numero != numero_table]
+        
+        if len(tables) == len(nouveau_parc):
+            return False  # Numéro de table introuvable
+            
+        SauvegardeService.sauvegarder_tables(nouveau_parc)
+        return True
