@@ -37,24 +37,26 @@ class BillardManagerGUI:
 
         # Barre supérieure (Profil employé connecté)
         self.creer_barre_statut()
-
+        
         # Menu à onglets étendu pour couvrir TOUTES les fonctionnalités
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(expand=True, fill="both", padx=10, pady=10)
 
-        # Création des 5 panneaux applicatifs majeurs
+        # Création des 6 panneaux applicatifs majeurs
         self.onglet_tables = ttk.Frame(self.notebook)
         self.onglet_parties = ttk.Frame(self.notebook)
         self.onglet_clients = ttk.Frame(self.notebook)
         self.onglet_reservations = ttk.Frame(self.notebook)
         self.onglet_stats = ttk.Frame(self.notebook)
-        
+        self.onglet_historique = ttk.Frame(self.notebook) # Nouveau cadre
+         
         # Injection des onglets dans le conteneur principal
         self.notebook.add(self.onglet_tables, text=" 🎱 Tables de Billard ")
         self.notebook.add(self.onglet_parties, text=" 🕹️ Sessions de Jeu ")
         self.notebook.add(self.onglet_clients, text=" 👥 Gestion des Clients ")
         self.notebook.add(self.onglet_reservations, text=" 📅 Réservations ")
         self.notebook.add(self.onglet_stats, text=" 📊 Tableau de Bord ")
+        self.notebook.add(self.onglet_historique, text=" 📜 Journal de Bord ")
 
         # Construction des interfaces graphiques respectives
         self.construire_onglet_tables()
@@ -62,6 +64,7 @@ class BillardManagerGUI:
         self.construire_onglet_clients()
         self.construire_onglet_reservations()
         self.construire_onglet_stats()
+        self.construire_onglet_historique()
 
     def creer_barre_statut(self):
         """Affiche l'en-tête de traçabilité de l'employé et le bouton de fermeture."""
@@ -400,7 +403,7 @@ class BillardManagerGUI:
     # FONCTIONNALITÉ : TABLE DES RÉSERVATIONS
     # ==========================================
     def construire_onglet_reservations(self):
-        """Génère le module de planification des réservations."""
+        """Génère le module de planification avec options Annuler et Honorer."""
         lbl_titre = ttk.Label(self.onglet_reservations, text="Planification des Tables", font=("Helvetica", 14, "bold"))
         lbl_titre.pack(pady=10)
 
@@ -418,7 +421,6 @@ class BillardManagerGUI:
 
         ttk.Label(cadre_r, text="Date/Heure :").grid(row=0, column=4, padx=5, pady=5)
         self.entry_r_date = ttk.Entry(cadre_r, width=18)
-        # Pré-remplissage avec un format exemple
         self.entry_r_date.insert(0, datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         self.entry_r_date.grid(row=0, column=5, padx=5, pady=5)
 
@@ -427,7 +429,7 @@ class BillardManagerGUI:
 
         # Tableau des réservations
         cols_r = ("id", "client", "table", "date", "statut")
-        self.tree_reservations = ttk.Treeview(self.onglet_reservations, columns=cols_r, show="headings", height=12)
+        self.tree_reservations = ttk.Treeview(self.onglet_reservations, columns=cols_r, show="headings", height=10)
         self.tree_reservations.heading("id", text="Code Résa")
         self.tree_reservations.heading("client", text="Identifiant Client")
         self.tree_reservations.heading("table", text="Table N°")
@@ -435,7 +437,65 @@ class BillardManagerGUI:
         self.tree_reservations.heading("statut", text="Statut")
         self.tree_reservations.pack(expand=True, fill="both", padx=20, pady=10)
 
+        # PANNEAU D'OUTILS INTERACTIFS DE SÉCURITÉ
+        zone_r_outils = tk.Frame(self.onglet_reservations, bg="#1e1e1e")
+        zone_r_outils.pack(fill="x", padx=20, pady=5)
+
+        btn_honorer = ttk.Button(zone_r_outils, text="🎮 Le client est là (Honorer)", command=self.action_honorer_reservation)
+        btn_honorer.pack(side="left", padx=5)
+
+        btn_annuler_res = tk.Button(zone_r_outils, text="❌ Annuler la Réservation", bg="#a33b3b", fg="#ffffff", 
+                                    font=("Helvetica", 10, "bold"), borderwidth=0, padx=10, pady=5, command=self.action_annuler_reservation)
+        btn_annuler_res.pack(side="right", padx=5)
+
         self.actualiser_reservations()
+
+    def action_honorer_reservation(self):
+        """Prend la réservation sélectionnée et démarre instantanément la partie."""
+        selection = self.tree_reservations.selection()
+        if not selection:
+            messagebox.showwarning("Sélection Requise", "Veuillez sélectionner une réservation à honorer.")
+            return
+
+        # Extraction des valeurs de la ligne
+        valeurs = self.tree_reservations.item(selection, "values")
+        id_res = valeurs[0]
+        statut_actuel = valeurs[4]
+
+        # Alerte préventive visuelle
+        if statut_actuel != "Confirmée":
+            messagebox.showwarning("Action Impossible", f"❌ Impossible d'honorer la réservation {id_res}.\nSon statut actuel est déjà : {statut_actuel}")
+            return
+
+        if ReservationService.honorer_reservation(id_res):
+            messagebox.showinfo("Partie Lancée", f"La réservation {id_res} a été honorée !\nLa table est lancée chronométrée.")
+            self.actualiser_reservations()
+            self.actualiser_tables()
+            self.actualiser_parties_actives()
+        else:
+            messagebox.showerror("Erreur", "Impossible d'honorer la réservation. Vérifiez la disponibilité de la table.")
+
+    def action_annuler_reservation(self):
+        """Bascule le statut de la réservation sélectionnée à Annulée."""
+        selection = self.tree_reservations.selection()
+        if not selection:
+            messagebox.showwarning("Sélection Requise", "Veuillez sélectionner une réservation à annuler.")
+            return
+
+        valeurs = self.tree_reservations.item(selection, "values")
+        id_res = valeurs[0]
+        statut_actuel = valeurs[4]
+
+        # Alerte préventive visuelle
+        if statut_actuel != "Confirmée":
+            messagebox.showwarning("Action Impossible", f"❌ Impossible d'annuler la réservation {id_res}.\nElle possède déjà le statut : {statut_actuel}")
+            return
+
+        if messagebox.askyesno("Confirmation", f"Voulez-vous vraiment annuler la réservation {id_res} ?"):
+            ReservationService.changer_statut_reservation(id_res, "Annulée")
+            messagebox.showinfo("Annulée", f"La réservation {id_res} a été annulée.")
+            self.actualiser_reservations()
+
 
     def action_creer_reservation(self):
         id_c = self.entry_r_client.get().strip()
@@ -526,3 +586,33 @@ class BillardManagerGUI:
         self.lbl_ca_jour.config(text=f"▶️ Chiffre d'Affaires du Jour : {rapport['ca_jour']} {DEVISE}")
         self.lbl_ca_mois.config(text=f"▶️ Chiffre d'Affaires du Mois : {rapport['ca_mois']} {DEVISE}")
         self.lbl_ca_annee.config(text=f"▶️ Chiffre d'Affaires de l'Année : {rapport['ca_annee']} {DEVISE}")
+
+    # ==========================================
+    # FONCTIONNALITÉ : HISTORIQUE DES PARTIES
+    # ==========================================
+    def construire_onglet_historique(self):
+        """Génère l'interface de consultation du journal des transactions."""
+        lbl_titre = ttk.Label(self.onglet_historique, text="Journal historique des parties clôturées", font=("Helvetica", 14, "bold"))
+        lbl_titre.pack(pady=10)
+
+        cols_h = ("id_p", "client", "table", "debut", "fin")
+        self.tree_historique = ttk.Treeview(self.onglet_historique, columns=cols_h, show="headings", height=15)
+        self.tree_historique.heading("id_p", text="N° Session")
+        self.tree_historique.heading("client", text="ID Client")
+        self.tree_historique.heading("table", text="Table")
+        self.tree_historique.heading("debut", text="Heure Début")
+        self.tree_historique.heading("fin", text="Heure Clôture")
+        self.tree_historique.pack(expand=True, fill="both", padx=20, pady=10)
+
+        btn_refresh_h = ttk.Button(self.onglet_historique, text="🔄 Actualiser le Journal", command=self.actualiser_historique)
+        btn_refresh_h.pack(pady=10)
+        self.actualiser_historique()
+
+    def actualiser_historique(self):
+        """Recharge les anciennes parties depuis le fichier JSON."""
+        for row in self.tree_historique.get_children():
+            self.tree_historique.delete(row)
+        
+        historique = PartieService.obtenir_historique_complet()
+        for h in historique:
+            self.tree_historique.insert("", "end", values=(h["id_partie"], h["id_client"], f"Table N°{h['numero_table']}", h["heure_debut"], h["heure_fin"]))

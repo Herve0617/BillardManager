@@ -90,3 +90,15 @@ class PartieService:
             if t.numero == numero_table_a_liberer:
                 t.est_occupee = False
         SauvegardeService.sauvegarder_tables(toutes_tables)
+
+    @classmethod
+    def obtenir_historique_complet(cls) -> List[dict]:
+        """Retourne l'intégralité des sessions de jeu passées (clôturées)."""
+        cls.initialiser_fichier_parties()
+        try:
+            with open(cls.FICHIER_PARTIES, "r", encoding="utf-8") as f:
+                historique = json.load(f)
+            # On trie pour n'afficher que les parties qui SONT clôturées
+            return [p for p in historique if p.get("cloturee") is True]
+        except (json.JSONDecodeError, FileNotFoundError):
+            return []

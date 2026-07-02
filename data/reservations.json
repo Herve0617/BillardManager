@@ -4,13 +4,13 @@
         "id_client": "clt0004",
         "numero_table": 2,
         "date_heure": "02-07 02:33",
-        "statut": "Confirm\u00e9e"
+        "statut": "Annul\u00e9e"
     },
     {
         "id_res": "RES0002",
         "id_client": "CLT0002",
         "numero_table": 1,
         "date_heure": "02-07 03:33",
-        "statut": "Confirm\u00e9e"
+        "statut": "Honor\u00e9e"
     }
 ]
