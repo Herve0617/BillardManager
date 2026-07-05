@@ -40,7 +40,7 @@ class StatistiqueService:
             with open(os.path.join("data", "parties.json"), "r", encoding="utf-8") as f_p:
                 parties = json.load(f_p)
             
-            # Compte le nombre total de reçus de caisse émis par le club
+            # Compte le nombre total de reçus de caisse émis par le club 
             stats["nombre_transactions"] = len(transactions)
 
             # Parcourt chaque transaction pour cumuler les montants
