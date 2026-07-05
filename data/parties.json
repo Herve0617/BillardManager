@@ -78,5 +78,13 @@
         "heure_debut": "2026-07-02 15:12:53",
         "heure_fin": "2026-07-02 15:21:34",
         "cloturee": true
+    },
+    {
+        "id_partie": 11,
+        "id_client": "CLT0001",
+        "numero_table": 1,
+        "heure_debut": "2026-07-05 00:53:36",
+        "heure_fin": "2026-07-05 01:16:07",
+        "cloturee": true
     }
 ]

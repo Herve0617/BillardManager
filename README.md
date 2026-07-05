@@ -1,98 +1,75 @@
 # 🎱 BillardManager v3.0
 
-> Application logicielle modulaire et professionnelle pour la gestion de l'exploitation, du parc de tables et de la facturation en temps réel d'un club de billard.
+> Système d'Information Évolué (ERP) pour la gestion opérationnelle, la planification des parcs de tables, la traçabilité du personnel et la facturation automatisée d'un club de billard.
 
-Ce projet implémente une double approche utilisateur : une **interface console interactive** et une **interface graphique moderne (GUI)**, le tout connecté à un système de stockage persistant.
-
----
-
-## 📐 Conception Orientée Objet (Critères Pédagogiques)
-
-Le logiciel est structuré selon une architecture modulaire en couches (`models`, `services`, `ui`, `utils`, `data`) respectant strictement les règles de la POO et les contraintes académiques :
-
-1. **`Personne` (Classe de Base)** : Centralise les attributs communs (Nom, Prénom, Téléphone) et intègre un moteur de validation des formats par expressions régulières (Regex).
-2. **`Client` (Héritage)** : Hérite de `Personne`. Gère les spécificités des membres, le calcul automatique des droits aux remises et l'éligibilité au statut VIP.
-3. **`Employe` (Héritage)** : Hérite de `Personne`. Modélise le personnel de caisse en service pour garantir la traçabilité complète de chaque transaction financière.
-4. **`TableBillard` (Encapsulation)** : Encapsule l’état de disponibilité, le numéro de table et indexe la tarification horaire fixe sur l'énumération stricte `TypeBillard` (Américain, Snooker, Français).
-5. **`Partie` & `Paiement` (Association & Composition)** : Orchestrent le cœur de métier du club. Gèrent l'affectation dynamique d'une table à un joueur, le chronométrage précis des sessions et la sérialisation des reçus comptables.
+Ce logiciel met en œuvre une double approche applicative : une **interface console interactive** sécurisée et une **interface graphique moderne (GUI)** à thème sombre, connectée à une base de données relationnelle déportée sur fichiers plats JSON.
 
 ---
 
-## 📁 Architecture du Projet
+## 📐 Architecture Orientée Objet & Règles Métiers (POO)
 
-```text
-BillardManager/
-│
-├── main.py                    # Point d'entrée unique de l'application
-├── requirements.txt           # Dépendances logicielles
-├── .gitignore                 # Filtres d'exclusion Git
-├── README.md                  # Documentation principale
-│
-├── models/                    # Modèles de données métiers et structures
-│   ├── enums.py               # Énumérations strictes (Types, Modes, Statuts)
-│   ├── personne.py
-│   ├── client.py
-│   ├── employe.py
-│   ├── table_billard.py
-│   ├── partie.py
-│   └── paiement.py
-│
-├── services/                  # Logique métier et couches d'accès aux données
-│   ├── client_service.py      # Inscriptions sécurisées et génération d'ID
-│   ├── table_service.py       # Contrôle d'unicité du parc de tables
-│   ├── partie_service.py      # Suivi des chronos et filtrage des tables libres
-│   ├── paiement_service.py    # Calculs financiers et édition des reçus
-│   ├── statistique_service.py # Bilans comptables et agrégation des revenus
-│   └── sauvegarde_service.py  # Persistance et sérialisation JSON
-│
-├── ui/                        # Couche de présentation (User Interface)
-│   ├── menu.py                # Arborescence des menus textuels (Console)
-│   ├── saisie.py              # Blindage des entrées claviers contre les crashs
-│   └── affichage.py           # Interface graphique moderne (Tkinter)
-│
-├── utils/                     # Modules utilitaires transversaux
-│   ├── constantes.py          # Configuration financière et temporelle
-│   └── validators.py          # Validateurs Regex (Téléphones, Emails)
-│
-└── data/                      # Persistance de données (Fichiers plats JSON)
-    ├── clients.json
-    ├── tables.json
-    ├── parties.json
-    └── paiements.json
-```
+Le logiciel est découpé en packages hermétiques (`models`, `services`, `ui`, `utils`, `data`) et s'articule autour de 6 structures de classes fondamentales :
+
+1. **`Personne` (Classe Abstraite de Base)** : Centralise l'identité civile (Nom, Prénom, Téléphone) et embarque un moteur de filtrage par Expressions Régulières (Regex).
+2. **`Client` (Héritage de Personne)** : Intègre le statut d'éligibilité financière (Membres VIP) ouvrant droit à une réduction permanente de 20% sur les sessions de jeu.
+3. **`Employe` (Héritage de Personne)** : Modélise les agents de caisse et réceptionnistes en service afin de garantir l'auditabilité et la traçabilité de chaque encaissement.
+4. **`TableBillard` (Encapsulation)** : Encapsule les index de tarification fixe et l'état physique du matériel, indexés sur l'énumération stricte `TypeBillard` (Américain, Snooker, Français).
+5. **`Reservation` (Planification Temporelle)** : Gère le cycle de vie complet des réservations (`Confirmée`, `Annulée`, `Honorée`) et interdit toute modification régressive des statuts validés.
+6. **`Partie` & `Paiement` (Associations & Agrégations)** : Orchestrent le cœur métier (calcul des durées réelles, génération des reçus fiscaux et ventilation comptable périodique).
+
+---
+
+## 🛠️ Fonctionnalités Avancées du Système (v3.0)
+
+### 👥 1. Gestion & Répertoire des Clients
+- Inscription avec génération transparente d'un identifiant unique incrémental (`CLT0001`, `CLT0002`).
+- **Blindage Réglementaire (Alerte Graphique)** : Le système intercepte instantanément les saisies et bloque l'inscription via une alerte d'erreur si le numéro de téléphone ne comporte pas exactement 8 chiffres.
+- Option de suppression définitive du catalogue client avec réécriture dynamique de la base de données.
+
+### 🕹️ 2. Sessions de Jeu (Recherche Prédictive Smart)
+- **Ergonomie Réceptionniste** : Plus besoin de retenir les ID clients. Le système intègre un écouteur d'événements clavier (`KeyRelease`) sur le numéro de téléphone. Dès que les 8 chiffres sont saisis, l'identité du joueur et son statut VIP s'affichent automatiquement en vert à l'écran, et le bouton d'ouverture se débloque.
+- Attribution automatisée de la première table disponible selon le style de billard désiré.
+- **Règle Anti-Squat Temporelle** : Le système analyse le planning et refuse d'accorder une session de jeu libre sur une table si celle-ci fait l'objet d'une réservation confirmée dans les 30 prochaines minutes.
+
+### 📅 3. Cycle de Vie des Réservations
+- Enregistrement des réservations par ID Client, numéro de table et date/heure.
+- Passerelle automatisée : Option « Honorer » qui bascule instantanément la réservation au statut `Honorée`, libère le planning et lance le chronomètre de jeu sans ressaisie.
+- **Maintenance Automatique des Retards** : À chaque ouverture ou rechargement, un algorithme d'arrière-plan calcule le décalage horaire. Si un client a plus de 30 minutes de retard sur sa réservation, le système la bascule automatiquement au statut `Annulée (Retard)` et libère la table pour le club.
+
+### 📊 4. Tableau de Bord Comptable Temporel
+- Calcul à chaud du chiffre d'affaires global et du volume de remises offertes.
+- **Ventilation Calendaire** : Analyse en temps réel des transactions pour afficher distinctement le Chiffre d'Affaires du **Jour**, du **Mois**, et de l'**Année** en cours.
+- Journal historique de bord (`parties.json`) listant l'intégralité des sessions clôturées pour l'audit.
 
 ---
 
 ## 🚀 Guide d'Installation et d'Exécution
 
 ### Prérequis
-- Python 3.10 ou version supérieure installée sur votre machine.
+- Python 3.10 ou version supérieure installée.
 
-### Lancement en mode Développement
-Ouvrez votre terminal à la racine du dossier du projet et exécutez :
+### Lancement standard (Mode Développement)
+Placez-vous à la racine du projet dans votre terminal et exécutez :
 ```bash
 python main.py
 ```
+Le point d'entrée unique vous invite à choisir votre environnement de travail :
+- **Choix 1** : Lancement de l'interface **Console (Textuelle)**.
+- **Choix 2** : Lancement de l'interface **Graphique Moderne (Tkinter Sombre)**.
 
-### Options au Démarrage
-Le point d'entrée unique `main.py` vous invite à choisir votre environnement de travail :
-- **Choix 1 (Interface Console)** : Permet de tester la rigueur de l'arborescence des menus textuels, les scénarios de démonstration chronométrés et la robustesse des entrées blindées.
-- **Choix 2 (Interface Graphique - GUI)** : Ouvre une application moderne à thème sombre dotée d'onglets pour piloter visuellement le club (Suivi des tables, Formulaire d'inscription des clients, Tableau de bord financier à chaud).
+### 📦 Compilation du Setup Autonome (Livrable Client)
+Pour distribuer l'application sous forme de logiciel installable indépendant (exécutable sans Python), utilisez `PyInstaller` :
+```bash
+pip install -r requirements.txt
+pyinstaller --noconsole --onefile --name="BillardManager" main.py
+```
+L'exécutable autonome est généré instantanément dans le dossier **`dist/BillardManager.exe`**.
 
 ---
 
-## 🛠️ Génération de l'Exécutable Autonome (Setup/Build)
+## 📁 Spécifications des Diagrammes de Conception (`docs/UML/`)
 
-Pour distribuer cette application sous la forme d'un logiciel indépendant installable (sans nécessiter l'installation de Python sur la machine cible), nous utilisons `PyInstaller`.
-
-1. Installez le compilateur :
-```bash
-pip install -r requirements.txt
-```
-
-2. Compilez le projet en un fichier unique avec masquage de la console d'arrière-plan :
-```bash
-pyinstaller --noconsole --onefile --name="BillardManager" main.py
-```
-
-3. L'exécutable autonome compilé est généré et disponible instantanément dans le dossier **`dist/BillardManager.exe`**.
+L'ensemble des fichiers de modélisation industrielle est disponible au format universel `PlantUML` dans le répertoire dédié :
+- `cas_utilisation.puml` : Modélisation des privilèges et cas d'utilisation (Réceptionniste vs Gérant).
+- `diagramme_classes.puml` : Cartographie structurelle complète des classes, multiplicités et dépendances POO.
+- `diagramme_sequence.puml` : Cinématique de la recherche prédictive par saisie de téléphone à 8 chiffres.

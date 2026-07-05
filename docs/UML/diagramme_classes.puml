@@ -1,0 +1,93 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+package Models {
+    class Personne {
+        + id_personne : str
+        + nom : str
+        + prenom : str
+        + telephone : str
+    }
+
+    class Client {
+        + est_vip : bool
+        + calculer_remise(montant_brut: float) : float
+    }
+
+    class Employe {
+        + poste : str
+    }
+
+    class TableBillard {
+        + numero : int
+        + type_billard : TypeBillard
+        + tarif_horaire : float
+        + est_occupee : bool
+    }
+
+    class Reservation {
+        + id_res : str
+        + client : Client
+        + table : TableBillard
+        + date_heure : datetime
+        + statut : StatutReservation
+    }
+
+    class Partie {
+        + id_partie : int
+        + client : Client
+        + table : TableBillard
+        + heure_debut : datetime
+        + heure_fin : datetime
+        + cloturee : bool
+    }
+
+    class Paiement {
+        + id_paiement : int
+        + partie : Partie
+        + mode : ModePaiement
+        + montant_brut : float
+        + remise_vip : float
+        + montant_net : float
+        + id_employe : str
+    }
+}
+
+package Enums {
+    enum TypeBillard {
+        AMERICAIN
+        SNOOKER
+        FRANCAIS
+    }
+    enum StatutReservation {
+        CONFIRMEE
+        ANNULEE
+        HONOREE
+    }
+    enum ModePaiement {
+        ESPECES
+        ORANGE_MONEY
+        MOOV_MONEY
+        CARTE_BANCAIRE
+    }
+}
+
+' Relations d'Héritage
+Personne <|-- Client
+Personne <|-- Employe
+
+' Liens avec les Enums
+TableBillard --> TypeBillard
+Reservation --> StatutReservation
+Paiement --> ModePaiement
+
+' Associations métiers
+Reservation "0..*" o-- "1" Client : pour >
+Reservation "0..*" o-- "1" TableBillard : cible >
+
+Partie "0..*" o-- "1" Client : joue <
+Partie "0..*" o-- "1" TableBillard : se déroule sur >
+
+Paiement "1" *-- "1" Partie : règle >
+Paiement "0..*" o-- "1" Employe : encaissé par >
+@endum

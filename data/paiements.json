@@ -104,5 +104,15 @@
         "montant_net": 434.67,
         "mode_paiement": "Moov Money",
         "id_employe": "EMP0001"
+    },
+    {
+        "id_paiement": 12,
+        "id_partie": 11,
+        "duree_heures": 0.38,
+        "montant_brut": 1126.46,
+        "remise_vip": 225.29,
+        "montant_net": 901.1700000000001,
+        "mode_paiement": "Esp\u00e8ces",
+        "id_employe": "EMP0001"
     }
 ]

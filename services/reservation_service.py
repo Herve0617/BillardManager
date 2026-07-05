@@ -98,9 +98,41 @@ class ReservationService:
     @classmethod
     def charger_toutes_reservations(cls) -> List[dict]:
         cls.initialiser_fichier()
+        # 1. Lance le nettoyage automatique des retards avant de lire les données
+        cls.verifier_et_nettoyer_retards()
+        
+        # 2. Lit et retourne le fichier mis à jour
         try:
             with open(cls.FICHIER_RESERVATIONS, "r", encoding="utf-8") as f:
                 return json.load(f)
         except json.JSONDecodeError:
             return []
 
+
+    @classmethod
+    def verifier_et_nettoyer_retards(cls):
+        """Annule automatiquement les réservations dont les clients ont plus de 30 min de retard."""
+        cls.initialiser_fichier()
+        with open(cls.FICHIER_RESERVATIONS, "r", encoding="utf-8") as f:
+            reservations = json.load(f)
+
+        maintenant = datetime.now()
+        modifie = False
+
+        for r in reservations:
+            if r["statut"] == "Confirmée":
+                try:
+                    heure_prevue = datetime.strptime(r["date_heure"], "%Y-%m-%d %H:%M:%S")
+                    retard_minutes = (maintenant - heure_prevue).total_seconds() / 60
+                    
+                    # Si l'heure est dépassée de plus de 30 minutes
+                    if retard_minutes > 30:
+                        r["statut"] = "Annulée (Retard)"
+                        modifie = True
+                except ValueError:
+                    continue
+
+        # Si au moins un statut a changé, on réécrit le fichier JSON à chaud
+        if modifie:
+            with open(cls.FICHIER_RESERVATIONS, "w", encoding="utf-8") as f:
+                json.dump(reservations, f, indent=4)

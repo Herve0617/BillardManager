@@ -12,5 +12,12 @@
         "numero_table": 1,
         "date_heure": "02-07 03:33",
         "statut": "Honor\u00e9e"
+    },
+    {
+        "id_res": "RES0003",
+        "id_client": "clt0002",
+        "numero_table": 3,
+        "date_heure": "2026-07-05 01:30:00",
+        "statut": "Confirm\u00e9e"
     }
 ]

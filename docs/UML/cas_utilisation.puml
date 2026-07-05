@@ -1,0 +1,29 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+actor "Réceptionniste" as Rec
+actor "Gérant" as Ger
+
+Ger -up-|> Rec : Hérite des droits
+
+rectangle BillardManager_System {
+    usecase "Inscrire / Consulter un Client" as UC1
+    usecase "Ouvrir une table (Lancer partie)" as UC2
+    usecase "Clôturer une table & Encaisser" as UC3
+    usecase "Gérer les Réservations (Honorer/Annuler)" as UC4
+    usecase "Acheter / Supprimer une table" as UC5
+    usecase "Consulter le Tableau de Bord (Stats)" as UC6
+    usecase "Consulter l'Historique général (Journal)" as UC7
+}
+
+Rec --> UC1
+Rec --> UC2
+Rec --> UC3
+Rec --> UC4
+
+Ger --> UC5
+Ger --> UC6
+Ger --> UC7
+@endum

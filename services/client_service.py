@@ -69,3 +69,12 @@ class ClientService:
         SauvegardeService.sauvegarder_clients(nouveau_catalogue)
         return True
 
+    @staticmethod
+    def rechercher_client_par_telephone(telephone: str) -> Optional[Client]:
+        """Cherche un client spécifique dans la base de données à partir de son téléphone unique."""
+        clients = SauvegardeService.charger_clients()
+        for client in clients:
+            if client.telephone.strip() == telephone.strip():
+                return client  # Retourne l'objet client correspondant trouvé
+        return None  # Aucun client ne possède ce numéro
+

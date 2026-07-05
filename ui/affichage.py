@@ -162,26 +162,39 @@ class BillardManagerGUI:
             dispo = "🔴 OCCUPÉE" if t.est_occupee else "🟢 DISPONIBLE"
             self.tree_tables.insert("", "end", values=(t.numero, t.type_billard.value, f"{t.tarif_horaire} {DEVISE}/h", dispo))
 
-    # ==========================================
-    # FONCTIONNALITÉ : INTERFACE SESSIONS DE JEU
+        # ==========================================
+    # FONCTIONNALITÉ : INTERFACE SESSIONS DE JEU (RECHERCHE SMART)
     # ==========================================
     def construire_onglet_parties(self):
-        """Construit le panneau de commande d'ouverture et fermeture de table."""
+        """Construit le panneau de commande avec détection automatique du client par téléphone."""
         cadre_form = tk.LabelFrame(self.onglet_parties, text=" 🟢 Lancer une Session de Jeu ", bg="#1e1e1e", fg="#ffffff", padx=15, pady=15, font=("Helvetica", 11, "bold"))
         cadre_form.pack(fill="x", padx=20, pady=10)
 
-        ttk.Label(cadre_form, text="ID Client :").grid(row=0, column=0, padx=5, sticky="w")
-        self.entry_id_client = ttk.Entry(cadre_form, width=15)
-        self.entry_id_client.grid(row=0, column=1, padx=5)
+        # Remplacement de l'ID par le Téléphone pour la recherche
+        ttk.Label(cadre_form, text="Tél Client (8 chiff.) :").grid(row=0, column=0, padx=5, sticky="w")
+        self.entry_recherche_tel = ttk.Entry(cadre_form, width=15, font=("Helvetica", 10))
+        self.entry_recherche_tel.grid(row=0, column=1, padx=5)
+        
+        # SÉCURITÉ & ERGONOMIE : On écoute chaque touche tapée par le réceptionniste
+        self.entry_recherche_tel.bind("<KeyRelease>", self.verification_dynamique_client)
 
         ttk.Label(cadre_form, text="Type Billard :").grid(row=0, column=2, padx=5, sticky="w")
         self.combo_type = ttk.Combobox(cadre_form, values=[t.value for t in TypeBillard], state="readonly", width=15)
         self.combo_type.current(0)
         self.combo_type.grid(row=0, column=3, padx=5)
 
-        btn_lancer = ttk.Button(cadre_form, text="🚀 Ouvrir la Table", command=self.action_ouvrir_table)
-        btn_lancer.grid(row=0, column=4, padx=20)
+        # Label dynamique de confirmation d'identité (S'affiche en vert quand le client est trouvé)
+        self.lbl_info_client_detecte = tk.Label(cadre_form, text="⚠️ En attente d'un numéro valide...", bg="#1e1e1e", fg="#ffaa00", font=("Helvetica", 10, "italic"))
+        self.lbl_info_client_detecte.grid(row=1, column=0, columnspan=2, pady=5, sticky="w")
 
+        # Bouton d'action (Désactivé par défaut, s'activera uniquement si le client existe)
+        self.btn_lancer = ttk.Button(cadre_form, text="🚀 Ouvrir la Table", state="disabled", command=self.action_ouvrir_table)
+        self.btn_lancer.grid(row=0, column=4, padx=20)
+        
+        # Variable cachée pour mémoriser l'ID du client trouvé lors de la frappe
+        self.id_client_selectionne_cache = None
+
+        # --- SECTION DES SESSIONS EN COURS (Identique) ---
         cadre_cloture = tk.LabelFrame(self.onglet_parties, text=" 🔴 Sessions de Jeu en Cours ", bg="#1e1e1e", fg="#ffffff", padx=15, pady=15, font=("Helvetica", 11, "bold"))
         cadre_cloture.pack(expand=True, fill="both", padx=20, pady=10)
 
@@ -206,6 +219,36 @@ class BillardManagerGUI:
 
         self.actualiser_parties_actives()
 
+
+    def verification_dynamique_client(self, event):
+        """Vérifie à chaque frappe de touche si le téléphone correspond à un client inscrit."""
+        tel_saisi = self.entry_recherche_tel.get().strip()
+        
+        # On ne cherche en base que si l'utilisateur a fini de taper les 8 chiffres du Burkina
+        if len(tel_saisi) == 8:
+            client = ClientService.rechercher_client_par_telephone(tel_saisi)
+            
+            if client:
+                # Client trouvé ! On affiche son identité et on stocke son ID en cache
+                vip_txt = "⭐ VIP (Remise 20%)" if client.est_vip else "Standard"
+                self.lbl_info_client_detecte.config(
+                    text=f"🟢 Client : {client.prenom} {client.nom} ({client.id_personne}) - {vip_txt}", 
+                    fg="#88ff88"
+                )
+                self.id_client_selectionne_cache = client.id_personne
+                self.btn_lancer.config(state="normal") # Débloque le bouton d'ouverture !
+            else:
+                # Le numéro a 8 chiffres mais n'existe pas dans le JSON
+                self.lbl_info_client_detecte.config(text="❌ Aucun client enregistré avec ce numéro.", fg="#ff5555")
+                self.id_client_selectionne_cache = None
+                self.btn_lancer.config(state="disabled")
+        else:
+            # Saisie en cours (moins de 8 chiffres)
+            self.lbl_info_client_detecte.config(text="⚠️ En attente d'un numéro valide (8 chiffres)...", fg="#ffaa00")
+            self.id_client_selectionne_cache = None
+            self.btn_lancer.config(state="disabled")
+
+
     def actualiser_parties_actives(self):
         for row in self.tree_parties.get_children():
             self.tree_parties.delete(row)
@@ -214,14 +257,12 @@ class BillardManagerGUI:
             self.tree_parties.insert("", "end", values=(p["id_partie"], p["id_client"], f"Table N°{p['numero_table']}", p["heure_debut"]))
 
     def action_ouvrir_table(self):
-        id_c = self.entry_id_client.get().strip()
+    # On récupère directement l'ID valide stocké par notre écouteur dynamique
+        id_c = self.id_client_selectionne_cache
         type_str = self.combo_type.get()
         
+        # Le client est garanti d'exister grâce au filtrage de saisie
         client = ClientService.rechercher_client_par_id(id_c)
-        if not client:
-            messagebox.showerror("Client Introuvable", f"L'identifiant '{id_c}' n'existe pas.")
-            return
-
         type_enum = TypeBillard(type_str)
         tables_libres = PartieService.obtenir_tables_libres_par_type(type_enum)
         
@@ -233,9 +274,16 @@ class BillardManagerGUI:
         PartieService.démarrer_partie(client, table_attribuee)
         
         messagebox.showinfo("Chrono Lancé", f"Table N°{table_attribuee.numero} affectée à {client.prenom} {client.nom}.")
-        self.entry_id_client.delete(0, tk.END)
+        
+        # Nettoyage et réinitialisation de l'onglet
+        self.entry_recherche_tel.delete(0, tk.END)
+        self.lbl_info_client_detecte.config(text="⚠️ En attente d'un numéro valide...", fg="#ffaa00")
+        self.btn_lancer.config(state="disabled")
+        self.id_client_selectionne_cache = None
+        
         self.actualiser_tables()
         self.actualiser_parties_actives()
+
 
     def action_cloturer_table(self):
         selection = self.tree_parties.selection()

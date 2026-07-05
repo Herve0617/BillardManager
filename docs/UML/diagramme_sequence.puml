@@ -1,0 +1,27 @@
+@startuml
+autonumber
+actor "Réceptionniste" as Rec
+boundary "Affichage (GUI)" as GUI
+control "ClientService" as CS
+control "PartieService" as PS
+database "clients.json" as DB_C
+database "tables.json" as DB_T
+
+Rec -> GUI : Saisit le numéro de téléphone (8 chiffres)
+GUI -> CS : rechercher_client_par_telephone(tel)
+CS -> DB_C : charger_clients()
+DB_C --> CS : Liste des clients
+CS --> GUI : Renvoie l'objet Client trouvé
+
+note over GUI : L'alerte passe au VERT\nLe bouton 'Ouvrir Table' s'active
+
+Rec -> GUI : Clique sur "🚀 Ouvrir la Table"
+GUI -> PS : obtenir_tables_libres_par_type(type)
+PS -> DB_T : Lit la disponibilité & règles temporelles
+DB_T --> PS : Tables disponibles
+PS --> GUI : Liste filtrée (table_attribuee = table[0])
+
+GUI -> PS : démarrer_partie(client, table_attribuee)
+PS -> DB_T : Écrit 'est_occupee: true'
+GUI --> Rec : Affiche un Pop-up "Chrono Lancé !"
+@startuml

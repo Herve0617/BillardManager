@@ -17,9 +17,42 @@ class PartieService:
 
     @staticmethod
     def obtenir_tables_libres_par_type(type_choisi: TypeBillard) -> List[TableBillard]:
-        """Retourne uniquement les tables du type demandé qui ne sont pas occupées."""
+        """Retourne les tables libres qui n'ont pas de réservation dans moins de 30 minutes."""
+        # 1. Chargement du parc de tables
         toutes_les_tables = SauvegardeService.charger_tables()
-        return [t for t in toutes_les_tables if t.type_billard == type_choisi and not t.est_occupee]
+        
+        # 2. Chargement des réservations à venir
+        from services.reservation_service import ReservationService
+        toutes_les_res = ReservationService.charger_toutes_reservations()
+        maintenant = datetime.now()
+
+        tables_disponibles = []
+
+        for table in toutes_les_tables:
+            # Filtre de base : bon type et physiquement libre
+            if table.type_billard == type_choisi and not table.est_occupee:
+                
+                # Vérification de la règle de sécurité des 30 minutes
+                bloquee_par_reservation = False
+                for res in toutes_les_res:
+                    if res["numero_table"] == table.numero and res["statut"] == "Confirmée":
+                        try:
+                            heure_res = datetime.strptime(res["date_heure"], "%Y-%m-%d %H:%M:%S")
+                            diff_minutes = (heure_res - maintenant).total_seconds() / 60
+                            
+                            # Si la réservation est dans le futur ET à moins de 30 minutes
+                            if 0 <= diff_minutes <= 30:
+                                bloquee_par_reservation = True
+                                break
+                        except ValueError:
+                            continue # Ignore si le format de date est corrompu
+                
+                # On accorde la table uniquement si aucune réservation n'est imminente
+                if not bloquee_par_reservation:
+                    tables_disponibles.append(table)
+                
+        return tables_disponibles
+
 
     @classmethod
     def démarrer_partie(cls, client: Client, table: TableBillard):
