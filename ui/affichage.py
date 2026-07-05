@@ -67,17 +67,55 @@ class BillardManagerGUI:
         self.construire_onglet_historique()
 
     def creer_barre_statut(self):
-        """Affiche l'en-tête de traçabilité de l'employé et le bouton de fermeture."""
+        """Affiche la barre supérieure avec option de permutation de l'employé en service."""
         barre = tk.Frame(self.root, bg="#2d2d2d", height=45)
         barre.pack(fill="x", side="top")
         
+        # Bouton Quitter
         btn_quitter = tk.Button(barre, text="🚪 Quitter", bg="#a33b3b", fg="#ffffff", font=("Helvetica", 9, "bold"), 
                                 borderwidth=0, padx=10, command=self.root.quit)
         btn_quitter.pack(side="left", padx=15, pady=8)
 
-        lbl = tk.Label(barre, text=f"👤 En service : {self.employe_connecte['nom']} ({self.employe_connecte['id']})", 
-                       bg="#2d2d2d", fg="#88ff88", font=("Helvetica", 10, "bold"))
-        lbl.pack(side="right", padx=15, pady=10)
+        # Label d'en-tête pour le sélecteur
+        lbl_select = tk.Label(barre, text="👤 Agent en service :", bg="#2d2d2d", fg="#ffffff", font=("Helvetica", 10, "bold"))
+        lbl_select.pack(side="left", padx=(300, 5))
+
+        # Chargement de la liste des employés depuis le JSON pour la permutation
+        self.liste_employes_obj = SauvegardeService.charger_employes()
+        # Formate le texte d'affichage pour la liste déroulante (ex: "EMP0001 - Zoungrana Pierre")
+        options_employes = [f"{e['id_personne']} - {e['nom']} {e['prenom']}" for e in self.liste_employes_obj]
+
+        # Création de la Combobox de permutation
+        self.combo_employes = ttk.Combobox(barre, values=options_employes, state="readonly", width=30, font=("Helvetica", 10))
+        if options_employes:
+            self.combo_employes.current(0)  # Sélectionne le premier par défaut
+        self.combo_employes.pack(side="left", padx=5)
+
+        # Écouteur d'événement : à chaque changement d'employé, on appelle la méthode de permutation
+        self.combo_employes.bind("<<ComboboxSelected>>", self.action_permuter_employe)
+
+        # Initialisation de la variable globale de session avec le premier employé de la liste
+        self.employe_connecte = {
+            "id": self.liste_employes_obj[0]["id_personne"],
+            "nom": f"{self.liste_employes_obj[0]['nom']} {self.liste_employes_obj[0]['prenom']}"
+        }
+
+
+    def action_permuter_employe(self, event):
+        """Détecte le choix de l'utilisateur et change instantanément l'employé actif en session."""
+        index_selectionne = self.combo_employes.current()
+        emp_choisi = self.liste_employes_obj[index_selectionne]
+        
+        # Permutation de la variable d'authentification
+        self.employe_connecte["id"] = emp_choisi["id_personne"]
+        self.employe_connecte["nom"] = f"{emp_choisi['nom']} {emp_choisi['prenom']}"
+        
+        # Message de confirmation éphémère
+        messagebox.showinfo(
+            "Permutation de Session", 
+            f"🔄 Changement d'équipe effectué !\nLa session est désormais gérée par : {self.employe_connecte['nom']}."
+        )
+
 
     # ==========================================
     # FONCTIONNALITÉ : GESTION DES TABLES
@@ -554,7 +592,6 @@ class BillardManagerGUI:
             messagebox.showerror("Champs Vides", "Veuillez remplir toutes les informations de planification.")
             return
 
-        # Validation existence client
         if not ClientService.rechercher_client_par_id(id_c):
             messagebox.showerror("Client Introuvable", f"L'identifiant '{id_c}' n'existe pas.")
             return
@@ -565,13 +602,19 @@ class BillardManagerGUI:
             messagebox.showerror("Saisie Incorrecte", "Le numéro de table doit être un entier.")
             return
 
-        # Enregistrement via le service
-        ReservationService.creer_reservation(id_c, num_t, date_str)
-        messagebox.showinfo("Confirmée", "La réservation a été enregistrée avec succès.")
-        
-        self.entry_r_client.delete(0, tk.END)
-        self.entry_r_table.delete(0, tk.END)
-        self.actualiser_reservations()
+        # MODIFICATION : Analyse du booléen renvoyé par le service métier blindé
+        if ReservationService.creer_reservation(id_c, num_t, date_str):
+            messagebox.showinfo("Confirmée", "🟢 Succès ! La réservation a été enregistrée.")
+            self.entry_r_client.delete(0, tk.END)
+            self.entry_r_table.delete(0, tk.END)
+            self.actualiser_reservations()
+        else:
+            # Message d'erreur explicite en cas de conflit détecté par les règles
+            messagebox.showerror(
+                "Conflit de Planning", 
+                f"❌ Échec de la réservation !\nLa table N°{num_t} est soit actuellement occupée, soit déjà réservée par un autre client."
+            )
+
 
     def actualiser_reservations(self):
         for row in self.tree_reservations.get_children():

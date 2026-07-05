@@ -18,10 +18,38 @@ class ReservationService:
 
     @classmethod
     def creer_reservation(cls, id_client: str, numero_table: int, date_heure_str: str) -> bool:
+        """Gère la création d'une réservation avec contrôles stricts anti-conflits."""
         cls.initialiser_fichier()
+        
+        # ---------------------------------------------------------------------
+        # RÈGLE 1 : Bloquer si la table est physiquement OCCUPÉE (En direct)
+        # ---------------------------------------------------------------------
+        toutes_tables = SauvegardeService.charger_tables()
+        table_cible = next((t for t in toutes_tables if t.numero == numero_table), None)
+        
+        if not table_cible:
+            print(f"❌ Erreur : La table N°{numero_table} n'existe pas au club.")
+            return False
+
+        if table_cible.est_occupee:
+            print(f"❌ Refusé : La table N°{numero_table} est actuellement occupée par un joueur.")
+            return False
+
+        # ---------------------------------------------------------------------
+        # RÈGLE 2 : Bloquer si la table fait DEJA l'objet d'une réservation confirmée
+        # ---------------------------------------------------------------------
         with open(cls.FICHIER_RESERVATIONS, "r", encoding="utf-8") as f:
             reservations = json.load(f)
         
+        # On parcourt le planning existant
+        for res in reservations:
+            if res["numero_table"] == numero_table and res["statut"] == "Confirmée":
+                print(f"❌ Refusé : La table N°{numero_table} est déjà réservée dans le planning.")
+                return False  # Conflit détecté, surréservation interdite !
+
+        # ---------------------------------------------------------------------
+        # VALIDATION : Si aucun conflit n'est détecté, on procède à l'écriture
+        # ---------------------------------------------------------------------
         id_res = f"RES{len(reservations) + 1:04d}"
         
         nouvelle_res = {
@@ -36,6 +64,7 @@ class ReservationService:
         with open(cls.FICHIER_RESERVATIONS, "w", encoding="utf-8") as f:
             json.dump(reservations, f, indent=4)
         return True
+
 
     @classmethod
     def changer_statut_reservation(cls, id_res: str, nouveau_statut: str) -> bool:

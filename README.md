@@ -6,16 +6,24 @@ Ce logiciel met en œuvre une double approche applicative : une **interface cons
 
 ---
 
-## 📐 Architecture Orientée Objet & Règles Métiers (POO)
+## 📝 Description du Sujet de Projet
 
-Le logiciel est découpé en packages hermétiques (`models`, `services`, `ui`, `utils`, `data`) et s'articule autour de 6 structures de classes fondamentales :
+### 1. Contexte et Problématique Métier
+La gestion quotidienne d'un club de billard repose sur une ressource critique, limitée et périssable : **le temps d'occupation des tables**. Contrairement à un commerce classique de vente d'articles physiques, un club de billard vend une expérience temporelle (la location d'une table à l'heure). 
 
-1. **`Personne` (Classe Abstraite de Base)** : Centralise l'identité civile (Nom, Prénom, Téléphone) et embarque un moteur de filtrage par Expressions Régulières (Regex).
-2. **`Client` (Héritage de Personne)** : Intègre le statut d'éligibilité financière (Membres VIP) ouvrant droit à une réduction permanente de 20% sur les sessions de jeu.
-3. **`Employe` (Héritage de Personne)** : Modélise les agents de caisse et réceptionnistes en service afin de garantir l'auditabilité et la traçabilité de chaque encaissement.
-4. **`TableBillard` (Encapsulation)** : Encapsule les index de tarification fixe et l'état physique du matériel, indexés sur l'énumération stricte `TypeBillard` (Américain, Snooker, Français).
-5. **`Reservation` (Planification Temporelle)** : Gère le cycle de vie complet des réservations (`Confirmée`, `Annulée`, `Honorée`) et interdit toute modification régressive des statuts validés.
-6. **`Partie` & `Paiement` (Associations & Agrégations)** : Orchestrent le cœur métier (calcul des durées réelles, génération des reçus fiscaux et ventilation comptable périodique).
+Dans la réalité, un gestionnaire fait face à plusieurs défis majeurs :
+*   **Les erreurs de facturation humaine** : Calculer de tête la durée exacte entre l'arrivée (ex: 14h13) et le départ (ex: 15h42) d'un client, tout en appliquant des tarifs différents par type de billard et des réductions d'abonnements, est source de pertes financières ou de litiges.
+*   **Les conflits de planification (Surréservation)** : Permettre à un client de réserver une table alors qu'elle est déjà promise à un autre, ou accorder une session libre à un joueur de passage alors qu'une réservation officielle commence dans 10 minutes.
+*   **Le manque de traçabilité** : Savoir quel employé a encaissé quelle somme, suivre l'évolution du Chiffre d'Affaires par Jour, Mois ou Année, et connaître l'historique précis de l'utilisation du parc de tables.
+
+### 2. Traduction des Concepts en Programmation Orientée Objet (POO)
+L'exploitation d'un club de billard est un cas d'école parfait pour appliquer les principes de la POO demandés par les consignes :
+*   **L'Héritage** : Une classe mère `Personne` centralise l'identité humaine. Les classes filles `Client` et `Employe` en héritent directement. `Client` y ajoute la gestion du statut VIP et de la méthode de réduction, tandis que `Employe` gère la traçabilité des équipes.
+*   **L'Encapsulation** : La classe `TableBillard` protège ses données internes (`numero`, `tarif_horaire`, `est_occupee`). Son type est verrouillé par une énumération (`TypeBillard`) pour interdire toute valeur fantaisiste.
+*   **L'Association et la Composition** : La classe `Partie` matérialise l'association entre un `Client` et une `Table`. La classe `Paiement` est liée par composition à la `Partie` pour en extraire la durée exacte et sceller le règlement financier.
+*   **La Persistance des données (Sérialisation)** : Toutes les entités sont traduites en dictionnaires pour être stockées de manière permanente dans des fichiers plats au format standardisé **JSON** (`data/`).
+
+> 📌 **Note Académique :** Une version rédigée et détaillée de cette description est également disponible dans le dossier des livrables de notre rapport à l'emplacement suivant : **`docs/Rapport/description du sujet de projet.pdf`** (ou .pdf).
 
 ---
 
@@ -33,13 +41,64 @@ Le logiciel est découpé en packages hermétiques (`models`, `services`, `ui`, 
 
 ### 📅 3. Cycle de Vie des Réservations
 - Enregistrement des réservations par ID Client, numéro de table et date/heure.
+- **Contrôles Anti-Surréservation** : Le système refuse d'enregistrer une réservation si la table demandée est déjà réservée dans le planning ou si elle est physiquement occupée par un joueur.
 - Passerelle automatisée : Option « Honorer » qui bascule instantanément la réservation au statut `Honorée`, libère le planning et lance le chronomètre de jeu sans ressaisie.
 - **Maintenance Automatique des Retards** : À chaque ouverture ou rechargement, un algorithme d'arrière-plan calcule le décalage horaire. Si un client a plus de 30 minutes de retard sur sa réservation, le système la bascule automatiquement au statut `Annulée (Retard)` et libère la table pour le club.
 
-### 📊 4. Tableau de Bord Comptable Temporel
-- Calcul à chaud du chiffre d'affaires global et du volume de remises offertes.
+### 📊 4. Tableau de Bord Comptable Temporel & Traçabilité
+- **Permutation des Employés (Changement d'équipe)** : La barre supérieure de l'application permet de permuter le réceptionniste actif. Chaque reçu de caisse est marqué par l'identité de l'agent pour assurer un audit transparent.
 - **Ventilation Calendaire** : Analyse en temps réel des transactions pour afficher distinctement le Chiffre d'Affaires du **Jour**, du **Mois**, et de l'**Année** en cours.
-- Journal historique de bord (`parties.json`) listant l'intégralité des sessions clôturées pour l'audit.
+- Journal historique de bord (`parties.json`) listant l'intégralité des sessions clôturées.
+
+---
+
+## 📁 Architecture du Projet
+
+```text
+BillardManager/
+│
+├── main.py                    # Point d'entrée unique de l'application
+├── requirements.txt           # Dépendances logicielles
+├── .gitignore                 # Filtres d'exclusion Git
+├── README.md                  # Documentation principale
+│
+├── docs/                      # Documentation et Rapports Académiques
+│   ├── UML/                   # Fichiers PlantUML (.puml)
+│   ├── Rapport/               # Dossier du rapport écrit complet ( description_sujet.txt )
+│   └── Images/                # Diagrammes exportés (.png)
+│
+├── models/                    # Modèles de données métiers et structures
+│   ├── enums.py
+│   ├── personne.py
+│   ├── client.py
+│   ├── employe.py
+│   ├── table_billard.py
+│   ├── partie.py
+│   └── paiement.py
+│
+├── services/                  # Logique métier et couches d'accès aux données
+│   ├── client_service.py
+│   ├── table_service.py
+│   ├── partie_service.py
+│   ├── paiement_service.py
+│   ├── statistique_service.py
+│   └── sauvegarde_service.py
+│
+├── ui/                        # Couche de présentation (User Interface)
+│   ├── menu.py                # Arborescence des menus textuels (Console)
+│   ├── saisie.py              # Blindage des entrées claviers contre les crashs
+│   └── affichage.py           # Interface graphique moderne (Tkinter)
+│
+├── utils/                     # Modules utilitaires transversaux
+│   ├── constantes.py
+│   └── validators.py
+│
+└── data/                      # Persistance de données (Fichiers plats JSON)
+    ├── clients.json
+    ├── tables.json
+    ├── parties.json
+    └── paiements.json
+```
 
 ---
 
@@ -65,7 +124,6 @@ pyinstaller --noconsole --onefile --name="BillardManager" main.py
 ```
 L'exécutable autonome est généré instantanément dans le dossier **`dist/BillardManager.exe`**.
 
----
 
 ## 📁 Spécifications des Diagrammes de Conception (`docs/UML/`)
 

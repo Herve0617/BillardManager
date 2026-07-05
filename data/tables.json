@@ -9,7 +9,7 @@
         "numero": 2,
         "type_billard": "Snooker",
         "tarif_horaire": 5000.0,
-        "est_occupee": false
+        "est_occupee": true
     },
     {
         "numero": 3,

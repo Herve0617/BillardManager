@@ -113,11 +113,16 @@ class SauvegardeService:
         """Charge la liste des employés disponibles dans le club."""
         fichier_emp = os.path.join("data", "employes.json")
         if not os.path.exists(fichier_emp):
-            # Crée un fichier par défaut si absent
+            # Initialisation automatique avec deux employés types du Burkina
+            employes_defaut = [
+                {"id_personne": "EMP0001", "nom": "Zoungrana", "prenom": "Pierre", "telephone": "70203040", "poste": "Réceptionniste"},
+                {"id_personne": "EMP0002", "nom": "Sawadogo", "prenom": "Ali", "telephone": "76112233", "poste": "Gérant"}
+            ]
             with open(fichier_emp, "w", encoding="utf-8") as f:
-                json.dump([], f, indent=4)
+                json.dump(employes_defaut, f, indent=4, ensure_ascii=False)
         try:
             with open(fichier_emp, "r", encoding="utf-8") as f:
                 return json.load(f)
         except json.JSONDecodeError:
             return []
+
